@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft服务器状态监控</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            /* 亮色主题变量 */
+            --bg-primary: linear-gradient(135deg, #f5f7fa, #e4e7eb);
+            --bg-header: rgba(255, 255, 255, 0.8);
+            --bg-card: rgba(255, 255, 255, 0.9);
+            --bg-stat-card: rgba(255, 255, 255, 0.9);
+            --bg-status-item: rgba(237, 242, 247, 0.7);
+            --bg-refresh-info: rgba(255, 255, 255, 0.8);
+            --bg-refresh-item: rgba(237, 242, 247, 0.7);
+            --bg-footer: rgba(255, 255, 255, 0.8);
+            --text-primary: #333;
+            --text-secondary: #4a5568;
+            --text-header: #2c5282;
+            --text-card-header: #2c5282;
+            --text-address: #4a5568;
+            --text-stat-value: #3182ce;
+            --border-primary: #cbd5e0;
+            --border-card: #e2e8f0;
+            --border-refresh: #e2e8f0;
+            --shadow-card: 0 5px 15px rgba(0, 0, 0, 0.05);
+            --shadow-card-hover: 0 10px 25px rgba(0, 0, 0, 0.1);
+            --indicator-online: #00ff8c;
+            --indicator-offline: #ff5555;
+            --indicator-online-glow: rgba(0, 255, 140, 0.5);
+            --indicator-offline-glow: rgba(255, 85, 85, 0.5);
+            --block-1-bg: linear-gradient(135deg, #a0aec0, #cbd5e0);
+            --block-2-bg: linear-gradient(135deg, #4db5ff, #00ccff);
+            --online-msg-bg: rgba(0, 255, 140, 0.15);
+            --offline-msg-bg: rgba(255, 85, 85, 0.15);
+            --querying-msg-bg: rgba(77, 181, 255, 0.15);
+            --online-msg-text: #2f855a;
+            --offline-msg-text: #c53030;
+            --querying-msg-text: #3182ce;
+            --group-header-color: #2c5282;
+            --group-icon-bg: linear-gradient(135deg, #ffaa00, #ffcc00);
+            --group-icon-color: white;
+            --bg-pattern: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNmNWY3ZmEiLz48cmVjdCB4PSIyMCIgeT0iMjAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0iI2QxZDhlMCIgZmlsbC1vcGFjaXR5PSIwLjQiLz48L3N2Zz4=');
+        }
+
+        .dark-theme {
+            /* 暗色主题变量 */
+            --bg-primary: linear-gradient(135deg, #0d1524, #1a1f2d);
+            --bg-header: rgba(15, 25, 40, 0.7);
+            --bg-card: rgba(15, 25, 40, 0.8);
+            --bg-stat-card: rgba(15, 25, 40, 0.7);
+            --bg-status-item: rgba(10, 20, 35, 0.6);
+            --bg-refresh-info: rgba(10, 20, 35, 0.5);
+            --bg-refresh-item: rgba(20, 40, 60, 0.4);
+            --bg-footer: rgba(15, 25, 40, 0.7);
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0c4e0;
+            --text-header: #4db5ff;
+            --text-card-header: #ffaa00;
+            --text-address: #a0c4e0;
+            --text-stat-value: #ffaa00;
+            --border-primary: #3a506b;
+            --border-card: #3a506b;
+            --border-refresh: #3a506b;
+            --shadow-card: 0 10px 20px rgba(0, 0, 0, 0.4);
+            --shadow-card-hover: 0 15px 30px rgba(0, 0, 0, 0.6);
+            --indicator-online: #00ff8c;
+            --indicator-offline: #ff5555;
+            --indicator-online-glow: #00ff8c;
+            --indicator-offline-glow: #ff5555;
+            --block-1-bg: linear-gradient(135deg, #7d5c3c, #5e4228);
+            --block-2-bg: linear-gradient(135deg, #4db5ff, #00ccff);
+            --online-msg-bg: rgba(0, 255, 140, 0.15);
+            --offline-msg-bg: rgba(255, 85, 85, 0.15);
+            --querying-msg-bg: rgba(77, 181, 255, 0.15);
+            --online-msg-text: #99ffcc;
+            --offline-msg-text: #ff9999;
+            --querying-msg-text: #99ccff;
+            --group-header-color: #ffaa00;
+            --group-icon-bg: linear-gradient(135deg, #ffaa00, #ffcc00);
+            --group-icon-color: #1a1f2d;
+            --bg-pattern: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiMwZDE1MjQiLz48cmVjdCB4PSIyMCIgeT0iMjAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0iIzIzMmY0MSIgZmlsbC1vcGFjaXR5PSIwLjQiLz48L3N2Zz4=');
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+            background-image: var(--bg-pattern);
+        }
+        
+        .container {
+            max-width: 1600px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: var(--bg-header);
+            border-radius: 15px;
+            border: 2px solid var(--border-primary);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #ffaa00, #00ffcc, #4db5ff);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            color: var(--text-header);
+            text-shadow: 0 0 10px rgba(77, 181, 255, 0.15);
+            background: linear-gradient(90deg, #4db5ff, #00ffcc, #ffaa00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+        
+        h1 i {
+            margin-right: 15px;
+            color: #ffaa00;
+            text-shadow: 0 0 10px rgba(255, 170, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .servers-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .status-card {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid var(--border-card);
+            box-shadow: var(--shadow-card);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .status-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-card-hover);
+            border-color: #4db5ff;
+        }
+        
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-card);
+        }
+        
+        .status-header h2 {
+            color: var(--text-card-header);
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+        
+        .server-region {
+            font-size: 0.9rem;
+            background: linear-gradient(135deg, #4db5ff, #00ccff);
+            padding: 3px 10px;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .server-address {
+            font-size: 0.85rem;
+            color: var(--text-address);
+            margin-top: 5px;
+            word-break: break-all;
+            font-family: monospace;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        
+        .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .online {
+            background: var(--indicator-online);
+            box-shadow: 0 0 8px var(--indicator-online-glow);
+        }
+        
+        .offline {
+            background: var(--indicator-offline);
+            box-shadow: 0 0 8px var(--indicator-offline-glow);
+        }
+        
+        .status-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            flex: 1;
+        }
+        
+        .status-item {
+            background: var(--bg-status-item);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border-card);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .status-item h3 {
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .status-value {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--text-stat-value);
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #4db5ff, #00ccff);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn:hover {
+            background: linear-gradient(135deg, #3da0e0, #00b3e0);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-refresh {
+            background: linear-gradient(135deg, #ffaa00, #ffcc00);
+        }
+        
+        .btn-refresh:hover {
+            background: linear-gradient(135deg, #e69500, #e6b800);
+        }
+        
+        .refresh-info {
+            text-align: center;
+            padding: 15px;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            background: var(--bg-refresh-info);
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-refresh);
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .refresh-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 15px;
+            background: var(--bg-refresh-item);
+            border-radius: 20px;
+        }
+        
+        .last-updated {
+            color: #4db5ff;
+            font-weight: bold;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 20px;
+            background: var(--bg-footer);
+            border-radius: 15px;
+            border: 1px solid var(--border-refresh);
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .servers-container {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+            
+            .refresh-info {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .servers-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .status-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .status-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .status-indicator {
+                align-self: flex-end;
+            }
+        }
+        
+        /* 加载动画 */
+        .loader {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #3182ce;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        .dark-theme .loader {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #4db5ff;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Minecraft风格方块装饰 */
+        .block-decoration {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background: var(--block-1-bg);
+            border: 2px solid #a0aec0;
+            transform: rotate(45deg);
+            z-index: 0;
+        }
+        
+        .dark-theme .block-decoration {
+            border: 2px solid #3a2a1c;
+        }
+        
+        .block-1 {
+            top: -12px;
+            left: -12px;
+        }
+        
+        .block-2 {
+            bottom: -12px;
+            right: -12px;
+            background: var(--block-2-bg);
+            border-color: #3182ce;
+        }
+        
+        .dark-theme .block-2 {
+            border-color: #3a506b;
+        }
+        
+        .status-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+        
+        .online-message {
+            background: var(--online-msg-bg);
+            color: var(--online-msg-text);
+        }
+        
+        .offline-message {
+            background: var(--offline-msg-bg);
+            color: var(--offline-msg-text);
+        }
+        
+        .querying-message {
+            background: var(--querying-msg-bg);
+            color: var(--querying-msg-text);
+        }
+        
+        .server-group {
+            margin-bottom: 30px;
+        }
+        
+        .group-header {
+            font-size: 1.8rem;
+            color: var(--group-header-color);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-card);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .group-header i {
+            background: var(--group-icon-bg);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--group-icon-color);
+            font-size: 1.5rem;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            flex: 1;
+            min-width: 200px;
+            background: var(--bg-stat-card);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border-card);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--text-stat-value);
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+        
+        /* 主题切换按钮 */
+        .theme-toggle {
+            /* 主题切换按钮样式 */
+            position: fixed; /* 固定定位，始终在页面右上角 */
+            top: 40px;          /* 距顶部30px */
+            right: 15px;        /* 距右侧30px */
+            background: rgba(255, 255, 255, 0.2); /* 半透明背景 */
+            border-radius: 20px; /* 圆角 */
+            padding: 15px 15px;   /* 内边距 */
+            display: flex;       /* 使用flex布局 */
+            align-items: center; /* 垂直居中 */
+            gap: 8px;            /* 图标与文字间距 */
+            cursor: pointer;     /* 鼠标悬停为手型 */
+            border: 1px solid var(--border-card); /* 边框 */
+            backdrop-filter: blur(5px); /* 毛玻璃效果 */
+            z-index: 100;        /* 层级较高，防止被遮挡 */
+        }
+        
+        .theme-toggle i {
+            font-size: 1.2rem;
+        }
+        
+        .dark-theme .theme-toggle {
+            background: rgba(15, 25, 40, 0.5);
+        }
+    </style>
+</head>
+<body class="light-theme">
+    <div class="theme-toggle" id="themeToggle">
+        <i class="fas fa-moon"></i>
+        <!-- <span></span> -->
+    </div>
+    
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-server"></i> Minecraft多节点状态监控</h1>
+            <p class="subtitle">实时监控多个Minecraft服务器节点状态，每1分钟自动更新服务器信息，随时掌握服务器运行情况</p>
+        </header>
+        
+        <div class="controls">
+            <button class="btn btn-refresh" id="refreshAllBtn"><i class="fas fa-sync-alt"></i> 立即刷新所有服务器</button>
+            <button class="btn" id="toggleAutoRefreshBtn"><i class="fas fa-power-off"></i> 开启自动刷新</button>
+        </div>
+        
+        <div class="refresh-info">
+            <div class="refresh-info-item">
+                <i class="fas fa-clock"></i> 最后更新时间: <span class="last-updated" id="lastUpdated">-</span>
+            </div>
+            <div class="refresh-info-item">
+                <i class="fas fa-redo"></i> 自动刷新状态: <span id="autoRefreshStatus">已启用</span>
+            </div>
+            <div class="refresh-info-item">
+                <i class="fas fa-hourglass-half"></i> 下次刷新倒计时: <span id="countdown">1:00</span>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">总服务器数量</div>
+                <div class="stat-value" id="totalServers">11</div>
+                <div class="stat-label">监控节点</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">在线服务器</div>
+                <div class="stat-value" id="onlineServers">0</div>
+                <div class="stat-label">正常运行</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">离线服务器</div>
+                <div class="stat-value" id="offlineServers">0</div>
+                <div class="stat-label">不可用</div>
+            </div>
+        </div>
+        
+        <!-- 主线节点组 -->
+        <div class="server-group">
+            <div class="group-header">
+                <i class="fas fa-city"></i> 主线节点
+            </div>
+            <div class="servers-container" id="zhuxian-servers">
+                <!-- 服务器卡片会通过JS动态生成 -->
+            </div>
+        </div>
+
+        <!-- 广东节点组 -->
+        <div class="server-group">
+            <div class="group-header">
+                <i class="fas fa-city"></i> 广东多线节点
+            </div>
+            <div class="servers-container" id="guangdong-servers">
+                <!-- 服务器卡片会通过JS动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 重庆节点组 -->
+        <div class="server-group">
+            <div class="group-header">
+                <i class="fas fa-city"></i> 重庆多线节点
+            </div>
+            <div class="servers-container" id="chongqing-servers">
+                <!-- 服务器卡片会通过JS动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 其他节点组 -->
+        <div class="server-group">
+            <div class="group-header">
+                <i class="fas fa-city"></i> 华中节点
+            </div>
+            <div class="servers-container" id="huazhong-servers">
+                <!-- 服务器卡片会通过JS动态生成 -->
+            </div>
+        </div>
+
+        <!-- 其他节点组 -->
+        <div class="server-group">
+            <div class="group-header">
+                <i class="fas fa-city"></i> 北方节点
+            </div>
+            <div class="servers-container" id="beifang-servers">
+                <!-- 服务器卡片会通过JS动态生成 -->
+            </div>
+        </div>
+
+        <!-- 其他节点组 -->
+        <div class="server-group">
+            <div class="group-header">
+                <i class="fas fa-city"></i> 测试服节点
+            </div>
+            <div class="servers-container" id="other-servers">
+                <!-- 服务器卡片会通过JS动态生成 -->
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Minecraft服务器状态监控工具 &copy; 2023 | 使用 mcstatus.io API | 每1分钟自动更新一次</p>
+            <p>当前监控 <span class="last-updated">11</span> 个服务器节点</p>
+        </div>
+    </div>
+    
+    <script>
+        // 服务器配置（按地区分组）
+        const serverGroups = [
+            {
+                id: "zhuxian",
+                name: "主线节点",
+                servers: [
+                    { id: 1, region: "广东电信主线", address: "mc.dyn.sakura.ink" },
+                ]
+            },
+            {
+                id: "guangdong",
+                name: "广东节点",
+                servers: [
+                    { id: 2, region: "广东移动", address: "gdyd.sakura.ink" },
+                    { id: 3, region: "广东联通", address: "gdlt.sakura.ink" },
+                    { id: 4, region: "广东电信", address: "gddx.sakura.ink" }
+                ]
+            },
+            {
+                id: "chongqing",
+                name: "重庆节点",
+                servers: [
+                    { id: 5, region: "重庆移动", address: "cqyd.sakura.ink" },
+                    { id: 6, region: "重庆联通", address: "cqlt.sakura.ink" },
+                    { id: 7, region: "重庆电信", address: "cqdx.sakura.ink" }
+                ]
+            },
+            {
+                id: "huazhong",
+                name: "华中节点",
+                servers: [
+                    { id: 8, region: "长沙电信", address: "csdx.sakura.ink" },
+                ]
+            },
+            {
+                id: "beifang",
+                name: "北方节点",
+                servers: [
+                    { id: 9, region: "济南电信", address: "lnlt.sakura.ink" },
+                    { id: 10, region: "天津联通", address: "tjlt.sakura.ink" },
+                ]
+            },
+            {
+                id: "other",
+                name: "测试服节点",
+                servers: [
+                    { id: 11, region: "测试服", address: "103.40.13.21:25403" },
+                    { id: 12, region: "测试服(备用)", address: "test.sakura.ink" }
+                ]
+            }
+        ];
+
+        // 状态变量
+        let lastUpdateTime = new Date();
+        let countdownInterval;
+        let autoRefreshEnabled = true;
+        let countdownSeconds = 60; // 1分钟 = 60秒
+        
+        // DOM元素
+        const countdownElement = document.getElementById('countdown');
+        const lastUpdatedElement = document.getElementById('lastUpdated');
+        const refreshAllBtn = document.getElementById('refreshAllBtn');
+        const toggleAutoRefreshBtn = document.getElementById('toggleAutoRefreshBtn');
+        const autoRefreshStatus = document.getElementById('autoRefreshStatus');
+        const onlineServersElement = document.getElementById('onlineServers');
+        const offlineServersElement = document.getElementById('offlineServers');
+        const themeToggle = document.getElementById('themeToggle');
+        
+        // 生成服务器卡片
+        function generateServerCards() {
+            serverGroups.forEach(group => {
+                const container = document.getElementById(`${group.id}-servers`);
+                container.innerHTML = '';
+                
+                group.servers.forEach(server => {
+                    const serverCard = document.createElement('div');
+                    serverCard.className = 'status-card';
+                    serverCard.id = `server-${server.id}`;
+                    serverCard.innerHTML = `
+                        <div class="block-decoration block-1"></div>
+                        <div class="block-decoration block-2"></div>
+                        
+                        <div class="status-header">
+                            <h2>
+                                <i class="fas fa-server"></i> ${server.region}
+                                <div class="server-address">${server.address}</div>
+                            </h2>
+                            <div class="status-indicator">
+                                <span class="indicator offline" id="statusIndicator${server.id}"></span>
+                                <span id="statusText${server.id}">离线</span>
+                            </div>
+                        </div>
+                        
+                        <div class="status-content">
+                            <div class="status-item">
+                                <h3><i class="fas fa-users"></i> 在线玩家</h3>
+                                <div class="status-value" id="onlinePlayers${server.id}">-</div>
+                            </div>
+                            
+                            <div class="status-item">
+                                <h3><i class="fas fa-code-branch"></i> 服务器版本</h3>
+                                <div class="status-value" id="serverVersion${server.id}">-</div>
+                            </div>
+                        </div>
+                        
+                        <div class="status-message querying-message" id="serverMessage${server.id}">
+                            等待查询服务器状态...
+                        </div>
+                    `;
+                    container.appendChild(serverCard);
+                });
+            });
+        }
+        
+        // 更新服务器状态显示
+        function updateServerStatus(serverId, data) {
+            const messageElement = document.getElementById(`serverMessage${serverId}`);
+            
+            // 更新在线状态
+            const statusIndicator = document.getElementById(`statusIndicator${serverId}`);
+            const statusText = document.getElementById(`statusText${serverId}`);
+            
+            if (data.online) {
+                statusIndicator.className = 'indicator online';
+                statusText.textContent = '在线';
+                messageElement.textContent = "服务器正常运行中";
+                messageElement.className = 'status-message online-message';
+            } else {
+                statusIndicator.className = 'indicator offline';
+                statusText.textContent = '离线';
+                messageElement.textContent = "服务器当前不可用";
+                messageElement.className = 'status-message offline-message';
+            }
+            
+            // 更新玩家信息
+            const onlinePlayers = document.getElementById(`onlinePlayers${serverId}`);
+            onlinePlayers.textContent = data.online ? data.players.online : "0";
+            
+            // 更新版本信息
+            const serverVersion = document.getElementById(`serverVersion${serverId}`);
+            serverVersion.textContent = data.online ? (data.version.name_clean || "未知") : "-";
+        }
+        
+        // 从mcstatus.io获取服务器状态
+        async function fetchServerStatus(server) {
+            const messageElement = document.getElementById(`serverMessage${server.id}`);
+            
+            try {
+                messageElement.textContent = "正在查询服务器状态...";
+                messageElement.className = 'status-message querying-message';
+                
+                const response = await fetch(`https://api.mcstatus.io/v2/status/java/${server.address}`);
+                
+                if (!response.ok) {
+                    throw new Error(`服务器响应错误: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                messageElement.textContent = "查询成功，服务器状态已更新";
+                messageElement.className = 'status-message online-message';
+                
+                return { serverId: server.id, data };
+            } catch (error) {
+                console.error(`获取服务器状态失败 (${server.region} - ${server.address}):`, error);
+                
+                messageElement.textContent = `查询失败: ${error.message || "网络错误"}`;
+                messageElement.className = 'status-message offline-message';
+                
+                return { 
+                    serverId: server.id, 
+                    data: {
+                        online: false,
+                        players: { online: 0, max: 0 },
+                        version: { name_clean: "未知", protocol: "未知" }
+                    }
+                };
+            }
+        }
+        
+        // 更新所有服务器状态
+        async function updateAllServersStatus() {
+            // 收集所有服务器
+            const allServers = [];
+            serverGroups.forEach(group => {
+                group.servers.forEach(server => {
+                    allServers.push(server);
+                });
+            });
+            
+            // 更新服务器状态
+            try {
+                const fetchPromises = allServers.map(server => fetchServerStatus(server));
+                const results = await Promise.all(fetchPromises);
+                
+                // 更新统计信息
+                let onlineCount = 0;
+                let offlineCount = 0;
+                
+                results.forEach(result => {
+                    updateServerStatus(result.serverId, result.data);
+                    
+                    if (result.data.online) {
+                        onlineCount++;
+                    } else {
+                        offlineCount++;
+                    }
+                });
+                
+                onlineServersElement.textContent = onlineCount;
+                offlineServersElement.textContent = offlineCount;
+                
+                // 更新最后更新时间
+                lastUpdateTime = new Date();
+                lastUpdatedElement.textContent = formatTime(lastUpdateTime);
+                
+                // 重置倒计时
+                resetCountdown();
+            } catch (error) {
+                console.error('更新服务器状态失败:', error);
+                resetCountdown();
+            }
+        }
+        
+        // 格式化时间为 HH:MM:SS
+        function formatTime(date) {
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const seconds = date.getSeconds().toString().padStart(2, '0');
+            return `${hours}:${minutes}:${seconds}`;
+        }
+        
+        // 格式化倒计时时间为 MM:SS
+        function formatCountdown(minutes, seconds) {
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        // 重置倒计时
+        function resetCountdown() {
+            clearInterval(countdownInterval);
+            countdownSeconds = 60; // 1分钟 = 60秒
+            
+            // 立即更新倒计时显示
+            const minutes = Math.floor(countdownSeconds / 60);
+            const seconds = countdownSeconds % 60;
+            countdownElement.textContent = formatCountdown(minutes, seconds);
+            
+            // 每秒更新倒计时
+            if (autoRefreshEnabled) {
+                countdownInterval = setInterval(() => {
+                    countdownSeconds--;
+                    
+                    if (countdownSeconds <= 0) {
+                        clearInterval(countdownInterval);
+                        updateAllServersStatus();
+                        return;
+                    }
+                    
+                    const minutes = Math.floor(countdownSeconds / 60);
+                    const seconds = countdownSeconds % 60;
+                    countdownElement.textContent = formatCountdown(minutes, seconds);
+                }, 1000);
+            }
+        }
+        
+        // 切换自动刷新状态
+        function toggleAutoRefresh() {
+            autoRefreshEnabled = !autoRefreshEnabled;
+            
+            if (autoRefreshEnabled) {
+                toggleAutoRefreshBtn.innerHTML = '<i class="fas fa-power-off"></i> 关闭自动刷新';
+                autoRefreshStatus.textContent = '已启用';
+                resetCountdown();
+            } else {
+                toggleAutoRefreshBtn.innerHTML = '<i class="fas fa-power-off"></i> 开启自动刷新';
+                autoRefreshStatus.textContent = '已禁用';
+                clearInterval(countdownInterval);
+                countdownElement.textContent = '已暂停';
+            }
+        }
+        
+        // 切换主题
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = themeToggle.querySelector('i');
+            const themeText = themeToggle.querySelector('span');
+            
+            if (body.classList.contains('dark-theme')) {
+                body.classList.remove('dark-theme');
+                themeIcon.className = 'fas fa-moon';
+                themeText.textContent = '';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.add('dark-theme');
+                themeIcon.className = 'fas fa-sun';
+                themeText.textContent = '';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+        
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', () => {
+            // 生成服务器卡片
+            generateServerCards();
+            
+            // 设置最后更新时间
+            lastUpdatedElement.textContent = formatTime(lastUpdateTime);
+            
+            // 添加按钮事件监听器
+            refreshAllBtn.addEventListener('click', updateAllServersStatus);
+            toggleAutoRefreshBtn.addEventListener('click', toggleAutoRefresh);
+            themeToggle.addEventListener('click', toggleTheme);
+            
+            // 初始加载服务器状态
+            updateAllServersStatus();
+            
+            // 检查保存的主题设置
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+                const themeIcon = themeToggle.querySelector('i');
+                const themeText = themeToggle.querySelector('span');
+                themeIcon.className = 'fas fa-sun';
+                themeText.textContent = '亮色主题';
+            }
+        });
+    </script>
+</body>
+</html>

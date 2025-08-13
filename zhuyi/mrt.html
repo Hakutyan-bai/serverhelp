@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>名人堂 | 服务器</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #ffb7c5; /* 樱花粉 */
+      --secondary-color: #ffdfe6; /* 浅粉 */
+      --accent-color: #ff85a2; /* 深粉 */
+      --dark-color: #e75480; /* 樱花深粉 */
+      --light-color: #fff9fb; /* 柔白 */
+      --text-dark: #5a5a5a;
+      --text-light: #fff;
+      --transition: all 0.3s ease;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #fff9fb 0%, #ffeef1 100%);
+      color: var(--text-dark);
+      background-attachment: fixed;
+      position: relative;
+      overflow-x: hidden;
+    }
+    
+    .header {
+      text-align: center;
+      padding: 30px 0;
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      position: relative;
+      z-index: 10;
+      border-bottom: 1px solid rgba(255, 183, 197, 0.3);
+    }
+    
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      background: linear-gradient(90deg, #e75480, #ff85a2);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .sakura {
+      position: absolute;
+      z-index: -1;
+      width: 40px;
+      height: 40px;
+      opacity: 0.7;
+      animation: falling 15s linear infinite;
+    }
+    
+    @keyframes falling {
+      0% { transform: translateY(-50px) rotate(0deg); }
+      100% { transform: translateY(calc(100vh + 50px)) rotate(360deg); }
+    }
+    
+    .container {
+      max-width: 1000px;
+      width: 95%;
+      margin: 30px auto;
+      padding: 0 15px;
+      flex: 1;
+    }
+    
+    .card {
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 20px;
+      padding: 35px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(255, 183, 197, 0.2);
+      transition: var(--transition);
+      margin-bottom: 30px;
+      position: relative;
+      z-index: 5;
+    }
+    
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      background: rgba(255, 255, 255, 0.95);
+    }
+    
+    .card-title {
+      font-size: 2.2rem;
+      margin-bottom: 30px;
+      color: var(--dark-color);
+      text-align: center;
+      position: relative;
+      padding-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+    
+    .card-title::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      border-radius: 2px;
+    }
+    
+    .section-title {
+      font-size: 1.8rem;
+      margin: 35px 0 20px;
+      color: var(--dark-color);
+      position: relative;
+      padding-left: 20px;
+    }
+    
+    .section-title::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 6px;
+      height: 80%;
+      background: var(--primary-color);
+      border-radius: 3px;
+    }
+    
+    .content {
+      font-size: 1.15rem;
+      line-height: 1.8;
+      margin-bottom: 25px;
+      color: var(--text-dark);
+      text-align: justify;
+    }
+    
+    .highlight {
+      background: linear-gradient(transparent 60%, rgba(255, 183, 197, 0.3) 40%);
+      padding: 0 5px;
+      font-weight: 600;
+      color: var(--dark-color);
+    }
+    
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 40px;
+    }
+    
+    .buttons button {
+      padding: 14px 28px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      background: linear-gradient(145deg, var(--primary-color), var(--accent-color));
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 6px 15px rgba(255, 183, 197, 0.3);
+      min-width: 180px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .buttons button:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(255, 183, 197, 0.4);
+    }
+    
+    .buttons button::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: 0.5s;
+    }
+    
+    .buttons button:hover::after {
+      left: 100%;
+    }
+    
+    .footer {
+      text-align: center;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.85);
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      z-index: 10;
+      border-top: 1px solid rgba(255, 183, 197, 0.3);
+      color: #888;
+      margin-top: auto;
+    }
+    
+    .footer p {
+      font-size: 1rem;
+    }
+    
+    .sakura-decoration {
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="%23ffb7c5" d="M50,15 C58,5 75,5 85,15 C95,25 95,42 85,50 C75,58 58,58 50,50 C42,58 25,58 15,50 C5,42 5,25 15,15 C25,5 42,5 50,15 Z"/></svg>') no-repeat center center;
+      background-size: contain;
+      opacity: 0.15;
+      z-index: 0;
+    }
+    
+    .sakura-decoration.top-left {
+      top: -50px;
+      left: -50px;
+    }
+    
+    .sakura-decoration.bottom-right {
+      bottom: -50px;
+      right: -50px;
+      transform: rotate(45deg);
+    }
+    
+    .timeline {
+      position: relative;
+      max-width: 800px;
+      margin: 40px auto;
+    }
+    
+    .timeline::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--primary-color);
+      left: 50%;
+      margin-left: -2px;
+      border-radius: 2px;
+    }
+    
+    .timeline-item {
+      position: relative;
+      margin-bottom: 50px;
+    }
+    
+    .timeline-content {
+      position: relative;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 15px;
+      padding: 25px;
+      width: calc(50% - 40px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(255, 183, 197, 0.3);
+      top: 40px;
+    }
+    
+    .timeline-item:nth-child(odd) .timeline-content {
+      left: 0;
+    }
+    
+    .timeline-item:nth-child(even) .timeline-content {
+      left: calc(50% + 40px);
+    }
+    
+    .timeline-content::after {
+      content: '';
+      position: absolute;
+      top: 20px;
+      width: 20px;
+      height: 20px;
+      transform: rotate(45deg);
+      background: rgba(255, 255, 255, 0.9);
+      border-right: 1px solid rgba(255, 183, 197, 0.3);
+      border-bottom: 1px solid rgba(255, 183, 197, 0.3);
+    }
+    
+    .timeline-item:nth-child(odd) .timeline-content::after {
+      right: -10px;
+    }
+    
+    .timeline-item:nth-child(even) .timeline-content::after {
+      left: -10px;
+    }
+    
+    .timeline-date {
+      position: absolute;
+      top: -10px;
+      background: var(--primary-color);
+      color: white;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    
+    .timeline-item:nth-child(odd) .timeline-date {
+      right: calc(50% + 60px);
+    }
+    
+    .timeline-item:nth-child(even) .timeline-date {
+      left: calc(50% + 60px);
+    }
+    
+    /* 响应式设计 */
+    @media screen and (max-width: 768px) {
+      .header h1 {
+        font-size: 2rem;
+      }
+      
+      .card-title {
+        font-size: 1.8rem;
+      }
+      
+      .section-title {
+        font-size: 1.5rem;
+      }
+      
+      .content {
+        font-size: 1.05rem;
+      }
+      
+      .buttons button {
+        padding: 12px 20px;
+        font-size: 1rem;
+        min-width: 160px;
+      }
+      
+      .timeline::before {
+        left: 30px;
+      }
+      
+      .timeline-content {
+        width: calc(100% - 70px);
+        margin-left: 70px;
+      }
+      
+      .timeline-item:nth-child(odd) .timeline-content,
+      .timeline-item:nth-child(even) .timeline-content {
+        left: 0;
+      }
+      
+      .timeline-content::after {
+        left: -10px !important;
+        right: auto !important;
+      }
+      
+      .timeline-date {
+        left: 0 !important;
+        right: auto !important;
+        top: -15px;
+      }
+    }
+    
+    @media screen and (max-width: 480px) {
+      .buttons {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .buttons button {
+        width: 100%;
+        max-width: 280px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 樱花飘落效果 -->
+  <div id="sakura-container"></div>
+  
+  <!-- 樱花装饰 -->
+  <div class="sakura-decoration top-left"></div>
+  <div class="sakura-decoration bottom-right"></div>
+  
+  <div class="header">
+    <h1><i class="fas fa-sakura"></i> “名人堂” | 玩家违规公告</h1>
+    <p>记录服务器中的“名人”</p>
+  </div>
+  
+  <div class="container">
+    <div class="card">
+      <h2 class="card-title"><i class="fas fa-medal"></i> 玩家违规事件记录</h2>
+      
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-date">5月24日</div>
+          <div class="timeline-content">
+            <h3 class="section-title">初次违规</h3>
+            <p class="content">玩家"SouthCity_163"在参与服务器测试期间，违规获取<span class="highlight">创造模式世界塑形器</span>。管理员首次发现后已作出警告处理（未公开处罚），但该玩家未改正错误，继而擅自修改游戏地形。经核实后，管理员依据服务器规则于五月二十四日对其处以24小时封禁。</p>
+          </div>
+        </div>
+        
+        <div class="timeline-item">
+          <div class="timeline-date">5月28日</div>
+          <div class="timeline-content">
+            <h3 class="section-title">二次违规</h3>
+            <p class="content">解封后，管理员在例行检查中发现该玩家仍非法保留<span class="highlight">创造模式世界塑形器</span>，情节严重。经核实，决定升级处罚：临时永久封禁，并保留进一步处理权限。</p>
+          </div>
+        </div>
+        
+        <div class="timeline-item">
+          <div class="timeline-date">5月30日</div>
+          <div class="timeline-content">
+            <h3 class="section-title">最终处罚</h3>
+            <p class="content">对其违规账号处以七日封禁处罚，6月6日下午解封，并销毁该玩家的违规道具。</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="buttons">
+        <button onclick="window.location.href='https://help.sakura.ink'">
+          <i class="fas fa-home"></i> 返回主页
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="footer">
+    <p>&copy; 2025 Haku. All rights reserved. | 名人堂 v1.0</p>
+  </div>
+  
+  <script>
+    // 樱花飘落效果
+    function createSakura() {
+      const container = document.getElementById('sakura-container');
+      const sakura = document.createElement('div');
+      sakura.className = 'sakura';
+      
+      // 随机位置
+      const left = Math.random() * 100;
+      sakura.style.left = `${left}%`;
+      
+      // 随机大小
+      const size = Math.random() * 20 + 10;
+      sakura.style.width = `${size}px`;
+      sakura.style.height = `${size}px`;
+      
+      // 随机旋转
+      const rotation = Math.random() * 360;
+      sakura.style.transform = `rotate(${rotation}deg)`;
+      
+      // 随机延迟
+      const delay = Math.random() * 15;
+      sakura.style.animationDelay = `${delay}s`;
+      
+      // 随机樱花类型
+      const types = ['🌸', '🌸', '🌸', '🌸', '🌸', '🌸', '🌸'];
+      const type = types[Math.floor(Math.random() * types.length)];
+      sakura.innerHTML = type;
+      
+      container.appendChild(sakura);
+      
+      // 移除樱花元素当动画结束后
+      setTimeout(() => {
+        sakura.remove();
+      }, 15000);
+    }
+    
+    // 初始化樱花飘落
+    for(let i = 0; i < 15; i++) {
+      setTimeout(() => {
+        createSakura();
+      }, i * 1000);
+    }
+    
+    // 持续生成樱花
+    setInterval(createSakura, 2000);
+  </script>
+</body>
+</html>

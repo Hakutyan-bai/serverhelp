@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>文件上传 | 樱花服务器</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #ffb7c5; /* 樱花粉 */
+      --secondary-color: #ffdfe6; /* 浅粉 */
+      --accent-color: #ff85a2; /* 深粉 */
+      --dark-color: #e75480; /* 樱花深粉 */
+      --light-color: #fff9fb; /* 柔白 */
+      --text-dark: #5a5a5a;
+      --text-light: #fff;
+      --transition: all 0.3s ease;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #fff9fb 0%, #ffeef1 100%);
+      color: var(--text-dark);
+      background-attachment: fixed;
+      position: relative;
+      overflow-x: hidden;
+    }
+    
+    .header {
+      text-align: center;
+      padding: 30px 0;
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      position: relative;
+      z-index: 10;
+      border-bottom: 1px solid rgba(255, 183, 197, 0.3);
+    }
+    
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      background: linear-gradient(90deg, #e75480, #ff85a2);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.8;
+      max-width: 800px;
+      margin: 0 auto;
+      color: #888;
+    }
+    
+    .sakura {
+      position: absolute;
+      z-index: -1;
+      width: 40px;
+      height: 40px;
+      opacity: 0.7;
+      animation: falling 15s linear infinite;
+    }
+    
+    @keyframes falling {
+      0% { transform: translateY(-50px) rotate(0deg); }
+      100% { transform: translateY(calc(100vh + 50px)) rotate(360deg); }
+    }
+    
+    .container {
+      max-width: 800px;
+      width: 95%;
+      margin: 30px auto;
+      padding: 0 15px;
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .card {
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(255, 183, 197, 0.2);
+      transition: var(--transition);
+      width: 100%;
+      max-width: 600px;
+      text-align: center;
+      position: relative;
+      z-index: 5;
+    }
+    
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      background: rgba(255, 255, 255, 0.95);
+    }
+    
+    .card-title {
+      font-size: 2.2rem;
+      margin-bottom: 30px;
+      color: var(--dark-color);
+      text-align: center;
+      position: relative;
+      padding-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+    
+    .card-title::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      border-radius: 2px;
+    }
+    
+    .upload-area {
+      border: 3px dashed var(--primary-color);
+      border-radius: 15px;
+      padding: 40px 20px;
+      background: rgba(255, 255, 255, 0.6);
+      margin-bottom: 30px;
+      transition: var(--transition);
+      position: relative;
+      cursor: pointer;
+    }
+    
+    .upload-area:hover {
+      background: rgba(255, 255, 255, 0.8);
+      border-color: var(--accent-color);
+    }
+    
+    .upload-icon {
+      font-size: 4rem;
+      color: var(--primary-color);
+      margin-bottom: 20px;
+      transition: var(--transition);
+    }
+    
+    .upload-area:hover .upload-icon {
+      transform: translateY(-5px);
+      color: var(--accent-color);
+    }
+    
+    .upload-text {
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+      color: var(--dark-color);
+    }
+    
+    .upload-subtext {
+      font-size: 0.9rem;
+      color: #888;
+    }
+    
+    .file-name {
+      display: block;
+      margin: 20px 0;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 10px;
+      border-left: 4px solid var(--primary-color);
+      text-align: center;
+      font-size: 1.1rem;
+      color: var(--dark-color);
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .file-name i {
+      color: var(--accent-color);
+    }
+    
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    
+    .buttons button {
+      padding: 14px 28px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      background: linear-gradient(145deg, var(--primary-color), var(--accent-color));
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 6px 15px rgba(255, 183, 197, 0.3);
+      min-width: 200px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .buttons button:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(255, 183, 197, 0.4);
+    }
+    
+    .buttons button::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: 0.5s;
+    }
+    
+    .buttons button:hover::after {
+      left: 100%;
+    }
+    
+    .custom-file-label {
+      display: inline-block;
+      padding: 14px 28px;
+      background: linear-gradient(145deg, var(--primary-color), var(--accent-color));
+      color: white;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 6px 15px rgba(255, 183, 197, 0.3);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-width: 200px;
+    }
+    
+    .custom-file-label:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(255, 183, 197, 0.4);
+    }
+    
+    .custom-file-label::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: 0.5s;
+    }
+    
+    .custom-file-label:hover::after {
+      left: 100%;
+    }
+    
+    .footer {
+      text-align: center;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.85);
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      z-index: 10;
+      border-top: 1px solid rgba(255, 183, 197, 0.3);
+      color: #888;
+      margin-top: auto;
+    }
+    
+    .footer p {
+      font-size: 1rem;
+    }
+    
+    .sakura-decoration {
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="%23ffb7c5" d="M50,15 C58,5 75,5 85,15 C95,25 95,42 85,50 C75,58 58,58 50,50 C42,58 25,58 15,50 C5,42 5,25 15,15 C25,5 42,5 50,15 Z"/></svg>') no-repeat center center;
+      background-size: contain;
+      opacity: 0.15;
+      z-index: 0;
+    }
+    
+    .sakura-decoration.top-left {
+      top: -50px;
+      left: -50px;
+    }
+    
+    .sakura-decoration.bottom-right {
+      bottom: -50px;
+      right: -50px;
+      transform: rotate(45deg);
+    }
+    
+    /* 响应式设计 */
+    @media screen and (max-width: 768px) {
+      .header h1 {
+        font-size: 2rem;
+      }
+      
+      .card {
+        padding: 30px 20px;
+      }
+      
+      .card-title {
+        font-size: 1.8rem;
+      }
+      
+      .buttons button, .custom-file-label {
+        padding: 12px 20px;
+        font-size: 1rem;
+        min-width: 180px;
+      }
+    }
+    
+    @media screen and (max-width: 480px) {
+      .buttons {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .buttons button, .custom-file-label {
+        width: 100%;
+        max-width: 280px;
+      }
+      
+      .upload-area {
+        padding: 30px 15px;
+      }
+      
+      .upload-icon {
+        font-size: 3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 樱花飘落效果 -->
+  <div id="sakura-container"></div>
+  
+  <!-- 樱花装饰 -->
+  <div class="sakura-decoration top-left"></div>
+  <div class="sakura-decoration bottom-right"></div>
+  
+  <div class="header">
+    <h1><i class="fas fa-sakura"></i> YSM模型上传</h1>
+    <p>上传您的.ysm模型文件或压缩包到服务器</p>
+  </div>
+  
+  <div class="container">
+    <div class="card">
+      <h2 class="card-title"><i class="fas fa-cloud-upload-alt"></i> 文件上传条款以及注意事项</h2>
+      <h3>禁止上传R18的模型，禁止在服务器里利用YSM搞颜色，若有出现违纪情况，服务器将会清查所有R18模型并删除，上传模型即视为同意该条款</h3>
+
+      <div class="buttons">
+        <button onclick="window.location.href='index2.0.html'">
+          <i class="fas fa-home"></i> 返回主页
+        </button>
+        <button onclick="window.location.href='http://sakura.ink:31771/index.html'">
+          <i class="fas fa-cloud-upload-alt"></i> 同意并继续
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="footer">
+    <p>&copy; 2025 Sakura_help. All rights reserved. | 文件上传系统 v1.0</p>
+  </div>
+  
+  <script>
+    // 樱花飘落效果
+    function createSakura() {
+      const container = document.getElementById('sakura-container');
+      const sakura = document.createElement('div');
+      sakura.className = 'sakura';
+      
+      // 随机位置
+      const left = Math.random() * 100;
+      sakura.style.left = `${left}%`;
+      
+      // 随机大小
+      const size = Math.random() * 20 + 10;
+      sakura.style.width = `${size}px`;
+      sakura.style.height = `${size}px`;
+      
+      // 随机旋转
+      const rotation = Math.random() * 360;
+      sakura.style.transform = `rotate(${rotation}deg)`;
+      
+      // 随机延迟
+      const delay = Math.random() * 15;
+      sakura.style.animationDelay = `${delay}s`;
+      
+      // 随机樱花类型
+      const types = ['🌸', '🌸', '🌸', '🌸', '🌸', '🌸', '🌸'];
+      const type = types[Math.floor(Math.random() * types.length)];
+      sakura.innerHTML = type;
+      
+      container.appendChild(sakura);
+      
+      // 移除樱花元素当动画结束后
+      setTimeout(() => {
+        sakura.remove();
+      }, 15000);
+    }
+    
+    // 初始化樱花飘落
+    for(let i = 0; i < 15; i++) {
+      setTimeout(() => {
+        createSakura();
+      }, i * 1000);
+    }
+    
+    // 持续生成樱花
+    setInterval(createSakura, 2000);
+    
+    // 文件选择功能
+    const fileInput = document.getElementById('fileInput');
+    const fileName = document.getElementById('fileName');
+    const uploadArea = document.getElementById('uploadArea');
+    
+    fileInput.addEventListener('change', function() {
+      if (fileInput.files.length) {
+        fileName.innerHTML = `<i class="fas fa-file"></i> ${fileInput.files[0].name}`;
+      } else {
+        fileName.innerHTML = '<i class="fas fa-info-circle"></i> 尚未选择任何文件';
+      }
+    });
+    
+    // 拖放功能
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.style.background = 'rgba(255, 255, 255, 0.9)';
+      uploadArea.style.borderColor = 'var(--accent-color)';
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.style.background = 'rgba(255, 255, 255, 0.6)';
+      uploadArea.style.borderColor = 'var(--primary-color)';
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.style.background = 'rgba(255, 255, 255, 0.6)';
+      uploadArea.style.borderColor = 'var(--primary-color)';
+      
+      if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        fileName.innerHTML = `<i class="fas fa-file"></i> ${e.dataTransfer.files[0].name}`;
+      }
+    });
+    
+    // 点击上传区域触发文件选择
+    uploadArea.addEventListener('click', () => {
+      fileInput.click();
+    });
+    
+    // // 模拟上传功能
+    // function uploadFile() {
+    //   if (!fileInput.files.length) {
+    //     fileName.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 请先选择要上传的文件';
+    //     fileName.style.color = '#e75480';
+    //     setTimeout(() => {
+    //       fileName.style.color = '';
+    //       fileName.innerHTML = '<i class="fas fa-info-circle"></i> 尚未选择任何文件';
+    //     }, 3000);
+    //     return;
+    //   }
+      
+    //   const originalText = fileName.innerHTML;
+    //   fileName.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 文件上传中...';
+      
+    //   // 模拟上传过程
+    //   setTimeout(() => {
+    //     fileName.innerHTML = `<i class="fas fa-check-circle" style="color:#00bb6d"></i> ${fileInput.files[0].name} 上传成功！`;
+    //     fileName.style.color = '#00bb6d';
+        
+    //     // 重置状态
+    //     setTimeout(() => {
+    //       fileInput.value = '';
+    //       fileName.innerHTML = '<i class="fas fa-info-circle"></i> 尚未选择任何文件';
+    //       fileName.style.color = '';
+    //     }, 5000);
+    //   }, 2000);
+    // }
+  </script>
+</body>
+</html>
